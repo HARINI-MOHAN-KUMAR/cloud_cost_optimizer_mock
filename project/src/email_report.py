@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 from typing import Any, List
 import smtplib
 
-from config import EMAIL_RECEIVER, EMAIL_PASSWORD, EMAIL_SENDER, SMTP_PORT, SMTP_SERVER
+from project.config import EMAIL_RECEIVER, EMAIL_PASSWORD, EMAIL_SENDER, SMTP_PORT, SMTP_SERVER
 
 
 class EmailReporter:

@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 import requests
 
-from config import OLLAMA_MODEL, OLLAMA_URL
+from project.config import OLLAMA_MODEL, OLLAMA_URL
 
 PROMPT_TEMPLATE = """
 You are a cloud cost optimization expert working for a DevOps team. Analyze this cloud resource and provide a cost-saving recommendation.

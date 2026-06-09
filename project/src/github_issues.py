@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 import requests
 
-from config import GITHUB_REPO, GITHUB_TOKEN
+from project.config import GITHUB_REPO, GITHUB_TOKEN
 
 LABELS = {
     "P0": {"name": "P0-critical", "color": "d73a4a"},

@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 import requests
 
-from config import DISCORD_WEBHOOK_URL
+from project.config import DISCORD_WEBHOOK_URL
 
 COLOR_MAP = {
     "P0": 15158332,

@@ -9,7 +9,7 @@ import csv
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
-from config import DATA_DIR
+from project.config import DATA_DIR
 
 REQUIRED_COLUMNS = {
     "resource_id",

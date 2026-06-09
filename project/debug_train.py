@@ -1,8 +1,8 @@
-﻿from config import DATA_DIR, CURRENT_WEEK_CSV, ENABLE_AI_AGENT
-from src.reader import CSVReader
-from src.detector import ResourceDetector
-from src.llm_analyzer import LLMAnalyzer
-from src.ai_agent import AIAnalyzerAgent
+﻿from project.config import DATA_DIR, CURRENT_WEEK_CSV, ENABLE_AI_AGENT
+from project.src.reader import CSVReader
+from project.src.detector import ResourceDetector
+from project.src.llm_analyzer import LLMAnalyzer
+from project.src.ai_agent import AIAnalyzerAgent
 from pathlib import Path
 import traceback
 

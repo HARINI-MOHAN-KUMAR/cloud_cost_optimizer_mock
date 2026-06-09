@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 try:
-    from config import GITHUB_REPO
+    from project.config import GITHUB_REPO
 except Exception:
     GITHUB_REPO = ""
 

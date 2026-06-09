@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List
 
-from config import (
+from project.config import (
     ALL_WEEKS_CSV,
     CURRENT_WEEK_CSV,
     DATA_DIR,
@@ -19,14 +19,14 @@ from config import (
     ENABLE_GITHUB_ISSUES,
     OUTPUT_DIR,
 )
-from src.ai_agent import AIAnalyzerAgent
-from src.detector import ResourceDetector
-from src.discord_alert import DiscordAlerter
-from src.email_report import EmailReporter
-from src.github_issues import GitHubIssueManager
-from src.html_report import HTMLReportGenerator
-from src.llm_analyzer import LLMAnalyzer
-from src.reader import CSVReader
+from project.src.ai_agent import AIAnalyzerAgent
+from project.src.detector import ResourceDetector
+from project.src.discord_alert import DiscordAlerter
+from project.src.email_report import EmailReporter
+from project.src.github_issues import GitHubIssueManager
+from project.src.html_report import HTMLReportGenerator
+from project.src.llm_analyzer import LLMAnalyzer
+from project.src.reader import CSVReader
 
 
 class ChatHandler(http.server.SimpleHTTPRequestHandler):

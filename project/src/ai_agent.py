@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Any, Dict, List
 
-from config import ENABLE_AI_AGENT
-from src.llm_analyzer import LLMAnalyzer
+from project.config import ENABLE_AI_AGENT
+from project.src.llm_analyzer import LLMAnalyzer
 
 
 class AIAnalyzerAgent:

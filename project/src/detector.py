@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 from typing import Any, Dict, List
 
-from config import CPU_THRESHOLD, COST_THRESHOLD, MEMORY_THRESHOLD, STALE_DAYS_THRESHOLD
+from project.config import CPU_THRESHOLD, COST_THRESHOLD, MEMORY_THRESHOLD, STALE_DAYS_THRESHOLD
 
 
 class ResourceDetector:
