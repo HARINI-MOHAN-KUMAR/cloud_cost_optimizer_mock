@@ -28,6 +28,13 @@ app = Flask(
     static_url_path="/static",
 )
 
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
 # ── Lazy-import project modules (safe even if some deps missing) ──────────────
 from project.config import (
     ALL_WEEKS_CSV,

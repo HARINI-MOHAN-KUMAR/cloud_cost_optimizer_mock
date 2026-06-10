@@ -978,17 +978,20 @@ const scanBtn = document.getElementById('btn-run-scan');
 const emailBtn = document.getElementById('btn-send-email');
 const discordBtn = document.getElementById('btn-send-discord');
 
-scanBtn.addEventListener('click', async () => {{
+function getApiUrl(path) {{
   if (location.protocol === 'file:') {{
-    showToast('⚠️ Please run "py -3.10 app.py" and open http://127.0.0.1:5000 to use live actions!');
-    return;
+    return 'http://127.0.0.1:5000' + path;
   }}
+  return path;
+}}
+
+scanBtn.addEventListener('click', async () => {{
   scanBtn.disabled = true;
   const originalHtml = scanBtn.innerHTML;
   scanBtn.innerHTML = '🔄 Scanning...';
   showToast('🔍 Initiating cost scan...');
   try {{
-    const res = await fetch('/api/scan', {{ method: 'POST' }});
+    const res = await fetch(getApiUrl('/api/scan'), {{ method: 'POST' }});
     if (res.ok) {{
       showToast('✅ Scan completed! Reloading dashboard...');
       setTimeout(() => location.reload(), 1000);
@@ -1005,16 +1008,12 @@ scanBtn.addEventListener('click', async () => {{
 }});
 
 emailBtn.addEventListener('click', async () => {{
-  if (location.protocol === 'file:') {{
-    showToast('⚠️ Please run "py -3.10 app.py" and open http://127.0.0.1:5000 to use live actions!');
-    return;
-  }}
   emailBtn.disabled = true;
   const originalHtml = emailBtn.innerHTML;
   emailBtn.innerHTML = '✉️ Sending...';
   showToast('✉️ Sending cost report email...');
   try {{
-    const res = await fetch('/api/notify/email', {{ method: 'POST' }});
+    const res = await fetch(getApiUrl('/api/notify/email'), {{ method: 'POST' }});
     if (res.ok) {{
       showToast('📧 Email report sent successfully!');
     }} else {{
@@ -1029,16 +1028,12 @@ emailBtn.addEventListener('click', async () => {{
 }});
 
 discordBtn.addEventListener('click', async () => {{
-  if (location.protocol === 'file:') {{
-    showToast('⚠️ Please run "py -3.10 app.py" and open http://127.0.0.1:5000 to use live actions!');
-    return;
-  }}
   discordBtn.disabled = true;
   const originalHtml = discordBtn.innerHTML;
   discordBtn.innerHTML = '💬 Sending...';
   showToast('💬 Sending Discord webhook alerts...');
   try {{
-    const res = await fetch('/api/notify/discord', {{ method: 'POST' }});
+    const res = await fetch(getApiUrl('/api/notify/discord'), {{ method: 'POST' }});
     if (res.ok) {{
       showToast('💬 Discord alert sent successfully!');
     }} else {{
