@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Cloud IQ Report</title>
+<!--[if mso]>
+<noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+<![endif]-->
+<style>
+  body { margin:0; padding:0; background:#0f172a; font-family:Inter,Arial,sans-serif; }
+  @media only screen and (max-width:600px) {
+    .container { width:100% !important; padding:16px !important; }
+    .stat-row { display:block !important; }
+    .stat-cell { display:block !important; width:100% !important; margin-bottom:12px; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#0f172a;font-family:Inter,Arial,sans-serif;color:#e2e8f0;">
+<div class="container" style="max-width:680px;margin:0 auto;padding:32px 20px;">
+
+  <!-- ── BUDGET ALERT BANNER ─────────────────────────────────── -->
+  {% if over_budget %}
+  <div style="background:linear-gradient(135deg,#7f1d1d,#991b1b);border:2px solid #ef4444;border-radius:16px;padding:20px 24px;margin-bottom:24px;text-align:center;">
+    <div style="font-size:28px;margin-bottom:8px;">💸</div>
+    <div style="font-size:18px;font-weight:800;color:#fca5a5;margin-bottom:6px;">BUDGET ALERT</div>
+    <div style="color:#fecaca;font-size:14px;">
+      Current spend <strong style="color:#fff;">${{ "%.2f"|format(total_cost) }}</strong> exceeds
+      budget limit <strong style="color:#fff;">${{ "%.2f"|format(budget_threshold) }}</strong>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── HEADER ──────────────────────────────────────────────── -->
+  <div style="background:linear-gradient(135deg,#0c2340 0%,#1a3a5c 50%,#0f2d48 100%);border-radius:20px;padding:36px 32px;margin-bottom:24px;border:1px solid rgba(56,189,248,0.2);">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+      <div style="font-size:40px;">☁️</div>
+      <div>
+        <h1 style="margin:0;font-size:26px;font-weight:900;color:#38bdf8;letter-spacing:-0.03em;">Cloud IQ</h1>
+        <div style="color:#64748b;font-size:13px;margin-top:2px;">Autonomous Cloud Cost Optimizer</div>
+      </div>
+    </div>
+    {% if email_type == "budget_alert" %}
+    <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#fca5a5;">⚠️ Budget Threshold Exceeded</h2>
+    {% else %}
+    <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#e2e8f0;">Cost Optimization Report</h2>
+    {% endif %}
+    <p style="margin:0;color:#94a3b8;font-size:13px;">Scan completed at {{ scan_time }}</p>
+  </div>
+
+  <!-- ── STAT CARDS ───────────────────────────────────────────── -->
+  <table class="stat-row" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;border-spacing:12px;">
+    <tr>
+      <td class="stat-cell" width="33%" style="padding:4px;">
+        <div style="background:#1e293b;border-radius:16px;padding:20px;text-align:center;border:1px solid rgba(148,163,184,0.1);">
+          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Issues Found</div>
+          <div style="font-size:38px;font-weight:900;color:#fb7185;line-height:1;">{{ findings|length }}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:4px;">{{ p0_count }} critical</div>
+        </div>
+      </td>
+      <td class="stat-cell" width="33%" style="padding:4px;">
+        <div style="background:#1e293b;border-radius:16px;padding:20px;text-align:center;border:1px solid rgba(52,211,153,0.15);">
+          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Monthly Savings</div>
+          <div style="font-size:38px;font-weight:900;color:#34d399;line-height:1;">${{ "%.0f"|format(total_saving) }}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:4px;">${{ "%.0f"|format(total_saving * 12) }}/year</div>
+        </div>
+      </td>
+      <td class="stat-cell" width="33%" style="padding:4px;">
+        <div style="background:#1e293b;border-radius:16px;padding:20px;text-align:center;border:1px solid rgba(148,163,184,0.1);">
+          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Total Spend</div>
+          <div style="font-size:38px;font-weight:900;color:#94a3b8;line-height:1;">${{ "%.0f"|format(total_cost) }}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:4px;">per month</div>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- ── SEVERITY BREAKDOWN ────────────────────────────────────── -->
+  <div style="background:#1e293b;border-radius:16px;padding:20px 24px;margin-bottom:24px;border:1px solid rgba(148,163,184,0.08);">
+    <h3 style="margin:0 0 16px;font-size:14px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Severity Breakdown</h3>
+    <table width="100%" cellspacing="0" cellpadding="0">
+      <tr>
+        <td style="padding:8px 0;">
+          <span style="display:inline-block;background:#fee2e2;color:#991b1b;font-weight:700;font-size:12px;padding:3px 10px;border-radius:999px;margin-right:10px;">P0 CRITICAL</span>
+          <span style="color:#e2e8f0;font-weight:700;">{{ p0_count }}</span>
+          <span style="color:#64748b;font-size:13px;margin-left:6px;">issues — immediate action required</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;">
+          <span style="display:inline-block;background:#fef3c7;color:#92400e;font-weight:700;font-size:12px;padding:3px 10px;border-radius:999px;margin-right:10px;">P1 WARNING</span>
+          <span style="color:#e2e8f0;font-weight:700;">{{ p1_count }}</span>
+          <span style="color:#64748b;font-size:13px;margin-left:6px;">issues — review within a week</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;">
+          <span style="display:inline-block;background:#d1fae5;color:#065f46;font-weight:700;font-size:12px;padding:3px 10px;border-radius:999px;margin-right:10px;">P2 LOW</span>
+          <span style="color:#e2e8f0;font-weight:700;">{{ findings|length - p0_count - p1_count }}</span>
+          <span style="color:#64748b;font-size:13px;margin-left:6px;">issues — low priority</span>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ── FINDINGS TABLE ────────────────────────────────────────── -->
+  {% if findings %}
+  <div style="background:#1e293b;border-radius:16px;padding:24px;margin-bottom:24px;border:1px solid rgba(148,163,184,0.08);">
+    <h3 style="margin:0 0 18px;font-size:16px;font-weight:700;color:#e2e8f0;">Flagged Resources</h3>
+    <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+      <thead>
+        <tr style="background:#0f172a;border-radius:10px;">
+          <th style="padding:10px 12px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Resource</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Type</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Severity</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Saving</th>
+          <th style="padding:10px 12px;text-align:left;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in findings %}
+        {% set res = entry.resource %}
+        {% set analysis = entry.get('analysis', {}) %}
+        {% set sev = analysis.get('severity', entry.get('severity', 'P2')) %}
+        {% set sev_color = '#ef4444' if sev == 'P0' else '#f59e0b' if sev == 'P1' else '#10b981' %}
+        <tr style="border-bottom:1px solid #0f172a;">
+          <td style="padding:12px;font-weight:600;color:#e2e8f0;font-size:13px;">{{ res.resource_id }}</td>
+          <td style="padding:12px;color:#94a3b8;font-size:13px;">{{ res.type }}</td>
+          <td style="padding:12px;">
+            <span style="color:{{ sev_color }};font-weight:800;font-size:12px;border:1px solid {{ sev_color }};padding:2px 8px;border-radius:999px;">{{ sev }}</span>
+          </td>
+          <td style="padding:12px;color:#34d399;font-weight:700;font-size:13px;">{{ analysis.get('estimated_saving', '$0/month') }}</td>
+          <td style="padding:12px;color:#94a3b8;font-size:12px;max-width:200px;">{{ analysis.get('recommendation', 'Review usage.') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- ── GITHUB LINKS ──────────────────────────────────────────── -->
+  {% if github_urls %}
+  <div style="background:#1e293b;border-radius:16px;padding:20px 24px;margin-bottom:24px;border:1px solid rgba(148,163,184,0.08);">
+    <h3 style="margin:0 0 12px;font-size:14px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">GitHub Issues Filed</h3>
+    {% for url in github_urls %}
+    <div style="margin-bottom:8px;">
+      <a href="{{ url }}" style="color:#38bdf8;text-decoration:none;font-size:13px;">{{ url }}</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── FOOTER ────────────────────────────────────────────────── -->
+  <div style="text-align:center;padding-top:24px;border-top:1px solid #1e293b;">
+    <p style="color:#334155;font-size:12px;margin:0 0 6px;">Generated by <strong style="color:#38bdf8;">Cloud IQ</strong> — Autonomous Cloud Cost Optimizer</p>
+    <p style="color:#1e293b;font-size:11px;margin:0;">This report was generated automatically. Powered by Gemini AI.</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -425,6 +425,12 @@ body{{
 .export-btn.json-btn:hover{{background:rgba(129,140,248,.15);}}
 .export-btn.print-btn{{color:#ffd43b;border-color:rgba(255,212,59,.25);background:rgba(255,212,59,.07);}}
 .export-btn.print-btn:hover{{background:rgba(255,212,59,.15);}}
+.export-btn.scan-btn{{color:#38bdf8;border-color:rgba(56,189,248,.25);background:rgba(56,189,248,.07);}}
+.export-btn.scan-btn:hover{{background:rgba(56,189,248,.15);}}
+.export-btn.email-btn{{color:#c084fc;border-color:rgba(192,132,252,.25);background:rgba(192,132,252,.07);}}
+.export-btn.email-btn:hover{{background:rgba(192,132,252,.15);}}
+.export-btn.discord-btn{{color:#5865f2;border-color:rgba(88,101,242,.25);background:rgba(88,101,242,.07);}}
+.export-btn.discord-btn:hover{{background:rgba(88,101,242,.15);}}
 
 /* ══════════════════════════════════════════════════════════════
    █████████   CHATBOT   █████████
@@ -633,6 +639,21 @@ a{{color:var(--accent);}}
   <button class="export-btn print-btn" onclick="window.print()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
     Print / PDF
+  </button>
+  
+  <div style="flex-grow:1;"></div>
+
+  <button class="export-btn scan-btn" id="btn-run-scan" title="Trigger a live scan to refresh cost data">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+    Run Live Scan
+  </button>
+  <button class="export-btn email-btn" id="btn-send-email" title="Send HTML report via email">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Send Email Report
+  </button>
+  <button class="export-btn discord-btn" id="btn-send-discord" title="Send alert notifications via Discord Webhook">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Send Discord Alert
   </button>
 </div>
 
@@ -952,6 +973,73 @@ document.getElementById('btn-export-json').addEventListener('click', () => {{
   showToast('✅ JSON exported!');
 }});
 
+// ── Live integrations ───────────────────────────────────────────────────────
+const scanBtn = document.getElementById('btn-run-scan');
+const emailBtn = document.getElementById('btn-send-email');
+const discordBtn = document.getElementById('btn-send-discord');
+
+scanBtn.addEventListener('click', async () => {{
+  scanBtn.disabled = true;
+  const originalHtml = scanBtn.innerHTML;
+  scanBtn.innerHTML = '🔄 Scanning...';
+  showToast('🔍 Initiating cost scan...');
+  try {{
+    const res = await fetch('/api/scan', {{ method: 'POST' }});
+    if (res.ok) {{
+      showToast('✅ Scan completed! Reloading dashboard...');
+      setTimeout(() => location.reload(), 1000);
+    }} else {{
+      showToast('❌ Scan failed.');
+      scanBtn.disabled = false;
+      scanBtn.innerHTML = originalHtml;
+    }}
+  }} catch (err) {{
+    showToast('❌ Network error during scan.');
+    scanBtn.disabled = false;
+    scanBtn.innerHTML = originalHtml;
+  }}
+}});
+
+emailBtn.addEventListener('click', async () => {{
+  emailBtn.disabled = true;
+  const originalHtml = emailBtn.innerHTML;
+  emailBtn.innerHTML = '✉️ Sending...';
+  showToast('✉️ Sending cost report email...');
+  try {{
+    const res = await fetch('/api/notify/email', {{ method: 'POST' }});
+    if (res.ok) {{
+      showToast('📧 Email report sent successfully!');
+    }} else {{
+      showToast('❌ Failed to send email.');
+    }}
+  }} catch (err) {{
+    showToast('❌ Network error sending email.');
+  }} finally {{
+    emailBtn.disabled = false;
+    emailBtn.innerHTML = originalHtml;
+  }}
+}});
+
+discordBtn.addEventListener('click', async () => {{
+  discordBtn.disabled = true;
+  const originalHtml = discordBtn.innerHTML;
+  discordBtn.innerHTML = '💬 Sending...';
+  showToast('💬 Sending Discord webhook alerts...');
+  try {{
+    const res = await fetch('/api/notify/discord', {{ method: 'POST' }});
+    if (res.ok) {{
+      showToast('💬 Discord alert sent successfully!');
+    }} else {{
+      showToast('❌ Failed to send Discord alert.');
+    }}
+  }} catch (err) {{
+    showToast('❌ Network error sending Discord alert.');
+  }} finally {{
+    discordBtn.disabled = false;
+    discordBtn.innerHTML = originalHtml;
+  }}
+}});
+
 // ── Savings calculator ──────────────────────────────────────────────────────
 const slider  = document.getElementById('coverage-slider');
 const pctEl   = document.getElementById('coverage-pct');
@@ -1233,7 +1321,7 @@ async function sendMessage() {{
   showTyping(); sendBtn.disabled=true;
 
   try {{
-    const r=await fetch('/chat',{{
+    const r=await fetch('/api/chat',{{
       method:'POST', headers:{{'Content-Type':'application/json'}},
       body:JSON.stringify({{question:text}}),
       signal:AbortSignal.timeout(4000),

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 import argparse
 import functools
 import http.server
@@ -48,7 +48,7 @@ class ChatHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self) -> None:
-        if self.path != "/chat":
+        if self.path not in ("/chat", "/api/chat"):
             return super().do_POST()
 
         length = int(self.headers.get("Content-Length", 0))
