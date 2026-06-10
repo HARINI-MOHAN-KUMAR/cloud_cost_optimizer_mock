@@ -979,6 +979,10 @@ const emailBtn = document.getElementById('btn-send-email');
 const discordBtn = document.getElementById('btn-send-discord');
 
 scanBtn.addEventListener('click', async () => {{
+  if (location.protocol === 'file:') {{
+    showToast('⚠️ Please run "py -3.10 app.py" and open http://127.0.0.1:5000 to use live actions!');
+    return;
+  }}
   scanBtn.disabled = true;
   const originalHtml = scanBtn.innerHTML;
   scanBtn.innerHTML = '🔄 Scanning...';
@@ -1001,6 +1005,10 @@ scanBtn.addEventListener('click', async () => {{
 }});
 
 emailBtn.addEventListener('click', async () => {{
+  if (location.protocol === 'file:') {{
+    showToast('⚠️ Please run "py -3.10 app.py" and open http://127.0.0.1:5000 to use live actions!');
+    return;
+  }}
   emailBtn.disabled = true;
   const originalHtml = emailBtn.innerHTML;
   emailBtn.innerHTML = '✉️ Sending...';
@@ -1021,6 +1029,10 @@ emailBtn.addEventListener('click', async () => {{
 }});
 
 discordBtn.addEventListener('click', async () => {{
+  if (location.protocol === 'file:') {{
+    showToast('⚠️ Please run "py -3.10 app.py" and open http://127.0.0.1:5000 to use live actions!');
+    return;
+  }}
   discordBtn.disabled = true;
   const originalHtml = discordBtn.innerHTML;
   discordBtn.innerHTML = '💬 Sending...';
