@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -19,6 +20,10 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger("cloud_iq")
+
+# ── Startup state ─────────────────────────────────────────────────────────────
+_startup_done = threading.Event()  # set when initial scan completes
+_startup_error: str = ""           # holds error message if startup fails
 
 # ── Flask app ─────────────────────────────────────────────────────────────────
 app = Flask(
@@ -68,6 +73,34 @@ issue_manager = GitHubIssueManager()
 
 # Ensure output dir exists
 Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Background startup scan
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _background_startup() -> None:
+    """Run initial scan in a background thread so first HTTP request is instant."""
+    global _startup_error
+    dash = Path(OUTPUT_DIR) / "dashboard.html"
+    if dash.exists():
+        logger.info("Dashboard already exists — skipping startup scan.")
+        _startup_done.set()
+        return
+    try:
+        logger.info("☁️  Running background startup scan...")
+        _run_pipeline()
+        logger.info("✅  Startup scan complete — dashboard ready.")
+    except Exception as exc:
+        _startup_error = str(exc)
+        logger.error("Startup scan failed: %s", exc)
+    finally:
+        _startup_done.set()
+
+
+# Launch background scan immediately (works with gunicorn multi-worker too)
+_t = threading.Thread(target=_background_startup, daemon=True)
+_t.start()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -169,18 +202,81 @@ def _run_pipeline(
 @app.route("/")
 @app.route("/dashboard")
 def index() -> Response:
-    """Serve the interactive cost dashboard."""
+    """Serve the interactive cost dashboard (instant — scan runs in background)."""
     dash = Path(OUTPUT_DIR) / "dashboard.html"
-    if not dash.exists():
-        logger.info("Dashboard missing — running initial scan...")
-        _run_pipeline()
     if dash.exists():
         return send_file(str(dash.absolute()), mimetype="text/html")
-    return Response(
-        "<h1 style='font-family:sans-serif;padding:40px'>Cloud IQ is starting..."
-        "<br><a href='/api/scan'>Click here to run the first scan</a></h1>",
-        mimetype="text/html",
-    )
+    # Dashboard not ready yet — serve animated loading page
+    return Response(_loading_page(), mimetype="text/html")
+
+
+def _loading_page() -> str:
+    """Beautiful animated loading page that auto-refreshes every 4 seconds."""
+    return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="4">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloud IQ — Loading...</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #fff;
+    }
+    .card {
+      text-align: center;
+      padding: 60px 80px;
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+      max-width: 500px;
+    }
+    .logo { font-size: 3rem; margin-bottom: 16px; }
+    h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px;
+         background: linear-gradient(90deg,#a78bfa,#60a5fa); -webkit-background-clip:text;
+         -webkit-text-fill-color:transparent; }
+    p { color: rgba(255,255,255,0.6); font-size: 1rem; margin-bottom: 40px; }
+    .spinner {
+      width: 56px; height: 56px; margin: 0 auto 28px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .steps { list-style: none; text-align: left; display: inline-block; }
+    .steps li { padding: 6px 0; font-size: 0.9rem; color: rgba(255,255,255,0.55); }
+    .steps li::before { content: '✓ '; color: #34d399; }
+    .steps li.active::before { content: '⟳ '; color: #a78bfa; animation: spin 1s linear infinite; display: inline-block; }
+    .steps li.pending::before { content: '○ '; color: rgba(255,255,255,0.25); }
+    .refresh-note { margin-top: 24px; font-size: 0.78rem; color: rgba(255,255,255,0.3); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">☁️</div>
+    <h1>Cloud IQ</h1>
+    <p>AI-powered cloud cost optimizer is warming up...</p>
+    <div class="spinner"></div>
+    <ul class="steps">
+      <li>Server started</li>
+      <li class="active">Running cost analysis &amp; AI insights</li>
+      <li class="pending">Building interactive dashboard</li>
+      <li class="pending">Ready to serve</li>
+    </ul>
+    <p class="refresh-note">This page refreshes automatically every 4 seconds</p>
+  </div>
+</body>
+</html>
+"""
 
 
 @app.route("/api/scan", methods=["GET", "POST"])
@@ -275,10 +371,25 @@ def api_chat():
 def api_health():
     """Health check for Render uptime monitoring."""
     return jsonify({
-        "status":  "healthy",
-        "service": "cloud-iq",
-        "version": "2.0.0",
+        "status":   "healthy",
+        "service":  "cloud-iq",
+        "version":  "2.0.0",
+        "ready":    _startup_done.is_set(),
+        "dashboard": (Path(OUTPUT_DIR) / "dashboard.html").exists(),
     })
+
+
+@app.route("/api/ping")
+def api_ping():
+    """Ultra-lightweight keep-alive endpoint to prevent Render free tier cold starts."""
+    return "pong", 200
+
+
+@app.route("/api/ready")
+def api_ready():
+    """Check if the dashboard is ready (used by loading page JS)."""
+    ready = (Path(OUTPUT_DIR) / "dashboard.html").exists()
+    return jsonify({"ready": ready})
 
 
 @app.route("/api/trends")
