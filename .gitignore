@@ -19,3 +19,6 @@ project/output/
 .idea/
 *.swp
 *.swo
+
+# Gemini
+.gemini/

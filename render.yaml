@@ -1,24 +1,36 @@
 services:
   - type: web
     name: cloud-iq
-    env: python
+    runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
       - key: PORT
-        value: 5000
+        value: "10000"
+      - key: PYTHON_VERSION
+        value: "3.10.11"
       - key: GEMINI_API_KEY
-        sync: true
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        value: "HARINI-MOHAN-KUMAR/cloud_cost_optimizer_mock"
+      - key: ENABLE_GITHUB_ISSUES
+        value: "true"
       - key: DISCORD_WEBHOOK_URL
-        sync: true
+        sync: false
       - key: ENABLE_DISCORD_ALERTS
         value: "true"
       - key: EMAIL_SENDER
-        sync: true
+        sync: false
       - key: EMAIL_PASSWORD
-        sync: true
+        sync: false
       - key: EMAIL_RECEIVER
-        sync: true
+        sync: false
+      - key: SMTP_SERVER
+        value: "smtp.gmail.com"
+      - key: SMTP_PORT
+        value: "587"
       - key: ENABLE_EMAIL_REPORT
         value: "true"
       - key: BUDGET_THRESHOLD
